@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"final/gateway/internal/httpx"
-	ledgerv1 "final/gateway/ledger/v1"
+	ledgerv1 "final/gen/ledger/v1"
 )
 
 func (h *Handler) ReportSummary(w http.ResponseWriter, r *http.Request) {

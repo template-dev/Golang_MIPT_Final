@@ -9,7 +9,8 @@ import (
 
 	"final/gateway/internal/middleware"
 	"final/gateway/internal/server"
-	ledgerv1 "final/gateway/ledger/v1"
+	ledgerv1 "final/gen/ledger/v1"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

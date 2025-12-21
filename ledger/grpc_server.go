@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	ledgerv1 "final/ledger/ledger/v1"
+	ledgerv1 "final/gen/ledger/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -109,16 +109,16 @@ func (s *GRPCServer) BulkImportTransactions(ctx context.Context, req *ledgerv1.B
 		return nil, mapServiceErr(err)
 	}
 
-	errs := make([]*ledgerv1.ImportError, 0, len(summary.Errors))
+	/*errs := make([]*ledgerv1.ImportError, 0, len(summary.Errors))
 	for _, e := range summary.Errors {
 		ee := e
 		errs = append(errs, &ledgerv1.ImportError{Index: int32(ee.Index), Error: ee.Error})
-	}
+	}*/
 
 	return &ledgerv1.BulkImportTransactionsResponse{
 		Accepted: summary.Accepted,
 		Rejected: summary.Rejected,
-		Errors:   errs,
+		//Errors:   errs,
 	}, nil
 }
 

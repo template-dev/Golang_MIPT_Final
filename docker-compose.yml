@@ -25,16 +25,30 @@ services:
       timeout: 3s
       retries: 20
 
+  auth:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
+    environment:
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgres://postgres:postgres@db:5432/cashapp?sslmode=disable}
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_me}
+      AUTH_ADDR: 0.0.0.0:8081
+    ports:
+      - "${AUTH_PORT_PUBLISH:-8081}:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+
   ledger:
     build:
       context: .
       dockerfile: ledger/Dockerfile
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@db:5432/cashapp?sslmode=disable}
-      LEDGER_GRPC_ADDR: 0.0.0.0:50051
       REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      LEDGER_GRPC_ADDR: 0.0.0.0:50051
     depends_on:
       db:
         condition: service_healthy
@@ -47,11 +61,15 @@ services:
       dockerfile: gateway/Dockerfile
     environment:
       LEDGER_ADDR: ${LEDGER_ADDR:-ledger:50051}
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_me}
+      AUTH_URL: ${AUTH_URL:-http://auth:8081}
       REQUEST_TIMEOUT_MS: ${REQUEST_TIMEOUT_MS:-2000}
     ports:
       - "${GATEWAY_PORT_PUBLISH:-8080}:8080"
     depends_on:
       ledger:
+        condition: service_started
+      auth:
         condition: service_started
       db:
         condition: service_healthy

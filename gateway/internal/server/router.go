@@ -5,7 +5,7 @@ import (
 
 	"final/gateway/internal/handler"
 	"final/gateway/internal/httpx"
-	ledgerv1 "final/gateway/ledger/v1"
+	ledgerv1 "final/gen/ledger/v1"
 )
 
 func NewRouter(client ledgerv1.LedgerServiceClient) http.Handler {
@@ -54,6 +54,9 @@ func NewRouter(client ledgerv1.LedgerServiceClient) http.Handler {
 	mux.HandleFunc("/api/transactions/bulk", func(w http.ResponseWriter, r *http.Request) {
 		h.BulkImportTransactions(w, r)
 	})
+
+	mux.HandleFunc("POST /auth/register", h.AuthRegister)
+	mux.HandleFunc("POST /auth/login", h.AuthLogin)
 
 	return mux
 }

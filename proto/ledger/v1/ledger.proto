@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ledger.v1;
 
-option go_package = "proto/ledger/v1;ledgerv1";
+option go_package = "final/ledger/v1;ledgerv1";
 
 import "google/protobuf/empty.proto";
 
@@ -50,20 +50,20 @@ message ReportSummaryResponse {
   map<string, double> totals = 1;
 }
 
-message ImportError {
-  int32 index = 1;
-  string error = 2;
-}
-
 message BulkImportTransactionsRequest {
   repeated CreateTransactionRequest items = 1;
   int32 workers = 2;
 }
 
+message BulkImportError {
+  int32 index = 1;
+  string error = 2;
+}
+
 message BulkImportTransactionsResponse {
   int64 accepted = 1;
   int64 rejected = 2;
-  repeated ImportError errors = 3;
+  repeated BulkImportError errors = 3;
 }
 
 service LedgerService {

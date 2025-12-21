@@ -1,6 +1,8 @@
 package handler
 
-import ledgerv1 "final/gateway/ledger/v1"
+import (
+	ledgerv1 "final/gen/ledger/v1"
+)
 
 type Handler struct {
 	client ledgerv1.LedgerServiceClient

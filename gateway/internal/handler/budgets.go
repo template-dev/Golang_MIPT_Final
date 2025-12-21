@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"final/gateway/internal/api"
+	"final/gateway/internal/grpcx"
 	"final/gateway/internal/httpx"
-	ledgerv1 "final/gateway/ledger/v1"
+	ledgerv1 "final/gen/ledger/v1"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -16,15 +18,16 @@ func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := req.Period
-	if p == "" {
-		p = "fixed"
+	ctx, err := grpcx.OutgoingContext(r.Context())
+	if err != nil {
+		httpx.WriteError(w, http.StatusUnauthorized, "missing user")
+		return
 	}
 
-	resp, err := h.client.SetBudget(r.Context(), &ledgerv1.CreateBudgetRequest{
+	resp, err := h.client.SetBudget(ctx, &ledgerv1.CreateBudgetRequest{
 		Category: req.Category,
 		Limit:    req.Limit,
-		Period:   p,
+		Period:   "fixed",
 	})
 	if err != nil {
 		code, msg := grpcToHTTP(err)
@@ -40,7 +43,13 @@ func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListBudgets(w http.ResponseWriter, r *http.Request) {
-	resp, err := h.client.ListBudgets(r.Context(), &emptypb.Empty{})
+	ctx, err := grpcx.OutgoingContext(r.Context())
+	if err != nil {
+		httpx.WriteError(w, http.StatusUnauthorized, "missing user")
+		return
+	}
+
+	resp, err := h.client.ListBudgets(ctx, &emptypb.Empty{})
 	if err != nil {
 		code, msg := grpcToHTTP(err)
 		httpx.WriteError(w, code, msg)
@@ -55,6 +64,5 @@ func (h *Handler) ListBudgets(w http.ResponseWriter, r *http.Request) {
 			Period:   b.GetPeriod(),
 		})
 	}
-
 	httpx.WriteJSON(w, http.StatusOK, out)
 }

@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	ledgerv1 "final/gen/ledger/v1"
 	"final/ledger"
-	ledgerv1 "final/ledger/ledger/v1"
 	"google.golang.org/grpc"
 )
 
