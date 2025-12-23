@@ -8,6 +8,12 @@ import (
 	"final/ledger/internal/domain"
 )
 
+type Deps struct {
+	Budgets      domain.BudgetRepo
+	Transactions domain.Transaction
+	Cache        Cache
+}
+
 var ErrBudgetExceeded = errors.New("budget exceeded")
 
 type Service interface {

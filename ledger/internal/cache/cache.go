@@ -2,43 +2,70 @@ package cache
 
 import (
 	"context"
+	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func NewClient() (*redis.Client, error) {
-	addr := getenv("REDIS_ADDR", "localhost:6379")
-	pass := os.Getenv("REDIS_PASSWORD")
-	db := getenvInt("REDIS_DB", 0)
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:        addr,
-		Password:    pass,
-		DB:          db,
-		DialTimeout: 2 * time.Second,
-	})
-
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		return nil, err
-	}
-	return rdb, nil
+type Client struct {
+	rdb *redis.Client
 }
 
-func getenv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+func NewFromEnv(ctx context.Context) (*Client, func() error, error) {
+	addr := strings.TrimSpace(os.Getenv("REDIS_ADDR"))
+	if addr == "" {
+		addr = "127.0.0.1:6379"
 	}
-	return def
-}
+	pass := strings.TrimSpace(os.Getenv("REDIS_PASSWORD"))
 
-func getenvInt(key string, def int) int {
-	if v := os.Getenv(key); v != "" {
-		if x, err := strconv.Atoi(v); err == nil {
-			return x
+	db := 0
+	if s := strings.TrimSpace(os.Getenv("REDIS_DB")); s != "" {
+		if n, err := strconv.Atoi(s); err == nil {
+			db = n
 		}
 	}
-	return def
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: pass,
+		DB:       db,
+	})
+
+	pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	if err := rdb.Ping(pingCtx).Err(); err != nil {
+		_ = rdb.Close()
+		return nil, nil, err
+	}
+
+	log.Printf("[ledger] redis connected addr=%s db=%d", addr, db)
+
+	return &Client{rdb: rdb}, rdb.Close, nil
+}
+
+func (c *Client) Get(ctx context.Context, key string) (string, bool, error) {
+	v, err := c.rdb.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return v, true, nil
+}
+
+func (c *Client) Set(ctx context.Context, key string, value string, ttl time.Duration) error {
+	return c.rdb.Set(ctx, key, value, ttl).Err()
+}
+
+func (c *Client) Del(ctx context.Context, keys ...string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+	return c.rdb.Del(ctx, keys...).Err()
 }

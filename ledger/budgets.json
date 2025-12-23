@@ -1,4 +1,0 @@
-[
-  { "category": "еда", "limit": 5000, "period": "month" },
-  { "category": "subscriptions", "limit": 800, "period": "month" }
-]
