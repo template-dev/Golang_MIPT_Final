@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	authhttp "final/auth/internal/http"
-
 	_ "github.com/jackc/pgx/v5/stdlib"
+	
+	authhttp "final/auth/internal/http"
 )
 
 func Build(ctx context.Context) (*http.Server, func() error, error) {

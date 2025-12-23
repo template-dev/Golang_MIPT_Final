@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"final/auth/internal/app"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
 	ctx := context.Background()
 
 	srv, closeFn, err := app.Build(ctx)
